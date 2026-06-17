@@ -31,9 +31,9 @@
    for locations that don't have character-specific overrides.
 ------------------------------------------------------------------------- */
 const CHARACTERS = {
-  stevie: {
-    id: 'stevie',
-    name: 'Sabrina Carpenter',
+  sabrina: {
+    id: 'sarbina',
+    name: 'Sabrina',
     tagline: 'Pop princess. Sweet smile, chaotic energy.',
     personality: 'playful, confident, always one step ahead of the situation',
     profile: 'characters/char1_profile.png',
@@ -50,9 +50,9 @@ const CHARACTERS = {
     },
   },
 
-  marisol: {
-    id: 'marisol',
-    name: 'Olivia Rodrigo',
+  olivia: {
+    id: 'olivia',
+    name: 'Olivia',
     tagline: 'Sharp wit. Big feelings. Main-character momentum.',
     personality: 'expressive, determined, turns every setback into a dramatic story',
     profile: 'characters/char2_profile.png',
@@ -69,9 +69,9 @@ const CHARACTERS = {
     },
   },
 
-  dmitri: {
-    id: 'dmitri',
-    name: 'Beyoncé',
+  ariana: {
+    id: 'ariana',
+    name: 'Ariana',
     tagline: 'Unshakable confidence. Every room becomes a stage.',
     personality: 'commanding, poised, effortlessly turns pressure into performance',
     profile: 'characters/char3_profile.png',
@@ -112,9 +112,9 @@ const LOCATIONS = [
     depthBands: { foreground: 1.0, midground: 0.8, background: 0.5 },
     flavorReasons: [
       'returning an overdue book before the fine doubles',
-      'pretending to study for finals',
-      'hiding from a group project',
-      'looking for a quiet place to nap',
+      'pretending to study for an important event',
+      'doing research for a group project',
+      'looking for a quiet place to read',
     ],
   },
   {
@@ -125,9 +125,9 @@ const LOCATIONS = [
     depthBands: { foreground: 1.0, midground: 1.0, background: 0.9 },
     flavorReasons: [
       'seeing the midnight premiere everyone is talking about',
-      'third date at the cheap theater',
-      'killing two hours of AC on a hot day',
-      'taking a younger sibling to a kids movie',
+      'five dollar movie tuesdays',
+      'finding a spot with two hours of AC on a hot day',
+      'watching the new horror flick everyone is raving about',
     ],
   },
   {
@@ -215,10 +215,10 @@ const LOCATIONS = [
     baseNoise: 0.5,
     depthBands: { foreground: 1.0, midground: 0.9, background: 0.8 },
     flavorReasons: [
-      'cast as a background dancer',
-      'an extra in the crowd shot',
-      'helping a friend who is the lead',
-      'sneaking onto set to watch',
+      'star of the show',
+      'filming her new music video',
+      'location scouting for her next shoot',
+      'on the side of set taking a break between shots',
     ],
   },
   {
@@ -590,8 +590,8 @@ const DIALOGUE = {
     "One more thing: {modifierName}. {modifierDescription}",
   ],
   vn_intro_closing: [
-    "Goal: release {targetGas} units of pressure without getting caught. Good luck.",
-    "Target: vent {targetGas} units of gas. Stay smooth. Stay invisible.",
+    "Goal: release {targetGas} hundred mL of gas without getting caught. Good luck.",
+    "Target: vent {targetGas} hundred mL of gas. Stay smooth. Stay invisible.",
   ],
 
   // ── Companion-specific extra lines ──────────────────────────────────────

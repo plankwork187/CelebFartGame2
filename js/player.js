@@ -83,6 +83,7 @@ const PLAYER = (() => {
     els.powerArc.setAttribute('stroke-dasharray', '0 ' + CIRC);
     els.powerLabel.textContent = '';
     setFace('relaxed', true);
+    AUDIO.stopLongFart(); // defensive: never carry a looping sound across a level reset
   }
 
   function startHold(dir) {
@@ -92,6 +93,7 @@ const PLAYER = (() => {
     els.powerRing.style.opacity = '1';
     currentLeanImg = Math.random() < 0.5 ? 'lean1' : 'lean2';
     setFace(currentLeanImg, true);
+    AUDIO.startLongFart(); // looping "charging up" sound; stopped in stopHold()
   }
 
   function stopHold() {
@@ -104,6 +106,18 @@ const PLAYER = (() => {
     currentLeanImg = null;
     setFace('relieved', true);
     setTimeout(() => { if (holdDir === 0) currentFaceKey = null; }, 900);
+
+    AUDIO.stopLongFart(); // always stop the charging loop on release
+    // TAP_THRESHOLD: power below this counts as a quick tap/click rather
+    // than a charged hold — releasedPower is derived straight from real
+    // elapsed hold time (see update()'s holdPower = elapsed/3000), so
+    // this is an accurate tap-vs-hold signal, not a guess. Quick taps get
+    // their own one-shot small-fart sound; longer holds already had the
+    // looping long-fart sound playing for their whole duration, so they
+    // don't also need a small-fart sound on release.
+    const TAP_THRESHOLD = 0.15;
+    if (releasedPower < TAP_THRESHOLD) AUDIO.playSmallFart();
+
     if (onRelease) onRelease(releasedPower); // holdDir still set here — game.js reads it via getHoldDir()
     holdDir = 0; holdPower = 0;
     return releasedPower;

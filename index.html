@@ -34,6 +34,7 @@
       <button class="big-btn" id="btn-go-howto">How to Play</button>
     </div>
     <p class="title-footer">made with love, beans, and bad choices</p>
+    <p class="title-footer">All characters are fictional and not based on any real person.</p>
   </section>
 
   <!-- ───────────────────────── HOW TO PLAY ───────────────────────── -->
@@ -139,6 +140,24 @@
     <button class="big-btn" id="btn-complete-menu">Back to Modes</button>
   </section>
 
+  <!-- ───────────────────────── CAUGHT / FAILURE SCREEN ─────────────────────────
+       Shown the instant Suspicion maxes out, for ANY suspicion-meter mode
+       (story, stealth, custom, endless). Distinct from screen-level-complete:
+       this is specifically the "you got caught" failure state — character's
+       caught facecam, a failure line, stats so far, and three separate exits
+       (Retry same level/run, Character Select, Main Menu). See ui.js:
+       showCaughtScreen(). -->
+  <section id="screen-caught" class="screen">
+    <div class="complete-burst"></div>
+    <h2 class="screen-heading" id="caught-title">Failed! Try Again</h2>
+    <img class="vn-portrait" id="caught-facecam" alt="">
+    <p class="screen-sub" id="caught-sub"></p>
+    <div class="complete-stats" id="caught-stats"><!-- populated by ui.js --></div>
+    <button class="big-btn big-btn-primary" id="btn-caught-retry">Try Again</button>
+    <button class="big-btn" id="btn-caught-charselect">Change Character</button>
+    <button class="big-btn" id="btn-caught-mainmenu">Main Menu</button>
+  </section>
+
   <!-- ───────────────────────── GAME SCREEN ───────────────────────── -->
   <section id="screen-game" class="screen">
 
@@ -228,11 +247,12 @@
 
 <!-- ============================================================
      SCRIPT LOAD ORDER MATTERS — later files depend on earlier ones.
-     utils -> assets -> data -> npc/cloud/companion/player -> generator
-     -> ui -> game -> main (boots everything)
+     utils -> assets -> audio -> data -> npc/cloud/companion/player
+     -> generator -> ui -> game -> main (boots everything)
      ============================================================ -->
 <script src="js/utils.js"></script>
 <script src="js/assets.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/data.js"></script>
 <script src="js/npc.js"></script>
 <script src="js/cloud.js"></script>

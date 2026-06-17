@@ -98,7 +98,7 @@ const UI = (() => {
       { key: 'gasPressureLevel', label: 'Gas Pressure Level', type: 'range', min: 0.1, max: 1, step: 0.05, default: 0.5 },
       { key: 'smellLevel', label: 'Smell Level', type: 'range', min: 0.1, max: 1, step: 0.05, default: 0.5 },
       { key: 'loudLevel', label: 'Loudness Level', type: 'range', min: 0.1, max: 1, step: 0.05, default: 0.5 },
-      { key: 'targetGas', label: 'Target Gas To Release', type: 'range', min: 30, max: 300, step: 10, default: 100 },
+      { key: 'targetGas', label: 'Target: 100s of mL of Gas Released', type: 'range', min: 30, max: 300, step: 10, default: 100 },
     ];
 
     const values = {};
@@ -166,7 +166,7 @@ const UI = (() => {
     const statDefs = [
       { value: p.highestLevelCleared, label: 'Levels Cleared' },
       { value: p.bestScore, label: 'Best Score' },
-      { value: p.totalGasReleased, label: 'Total Gas Released' },
+      { value: p.totalGasReleased, label: 'Total 100s of mL of Gas Released' },
       { value: p.timesCaught, label: 'Times Caught' },
     ];
     statDefs.forEach(s => {
@@ -285,7 +285,7 @@ const UI = (() => {
     stats.innerHTML = '';
     const statDefs = [
       { value: result.score, label: 'Score' },
-      { value: Math.round(result.gasReleased), label: 'Gas Released' },
+      { value: Math.round(result.gasReleased), label: '100s of mL of Gas Released' },
       { value: result.difficultyScore + '/10', label: 'Difficulty' },
     ];
     statDefs.forEach(s => {
@@ -301,9 +301,51 @@ const UI = (() => {
     showScreen('screen-level-complete');
   }
 
+  // ── Caught / failure screen ─────────────────────────────────────────
+  // Shown for ANY suspicion-meter mode (story, stealth, custom, endless)
+  // the instant suspicion hits 100 and the player is caught. Distinct
+  // from showLevelComplete: this is specifically the "you got caught"
+  // failure state, with the character's caught facecam and three
+  // separate exits (Retry same level/run, Character Select, Main Menu)
+  // rather than auto-restarting anything.
+  // `character` is the active CHARACTERS entry (for its caught facecam
+  // assets — character.faces.caught1/caught2, same images PLAYER.setFace
+  // already uses in-scene). `onRetry`/`onCharacterSelect`/`onMainMenu`
+  // are callbacks wired by main.js.
+  function showCaughtScreen(result, character, onRetry, onCharacterSelect, onMainMenu) {
+    byId('caught-title').textContent = 'Failed! Try Again';
+    byId('caught-sub').textContent = randLine(DIALOGUE.level_failed_suspicion, { character: result.characterName });
+
+    // Use the same caught facecam pool the in-scene face already uses
+    // (character.faces.caught1 / caught2) — pick one at random so a
+    // retry can show either expression.
+    const facecamImg = byId('caught-facecam');
+    const caughtKey = Math.random() < 0.5 ? 'caught1' : 'caught2';
+    ASSETS.applyTo(facecamImg, character.faces[caughtKey]);
+
+    const stats = byId('caught-stats');
+    stats.innerHTML = '';
+    const statDefs = [
+      { value: result.score, label: 'Score' },
+      { value: Math.round(result.gasReleased), label: '100s of mL of Gas Released' },
+    ];
+    statDefs.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'complete-stat';
+      card.innerHTML = `<div class="complete-stat-value">${s.value}</div><div class="complete-stat-label">${s.label}</div>`;
+      stats.appendChild(card);
+    });
+
+    byId('btn-caught-retry').onclick = onRetry;
+    byId('btn-caught-charselect').onclick = onCharacterSelect;
+    byId('btn-caught-mainmenu').onclick = onMainMenu;
+    showScreen('screen-caught');
+  }
+
   return {
     init, showScreen, refreshModeSelect, populateCharacterSelect,
     populateCustomSetup, showStoryMap, showLevelIntro, showLevelComplete,
+    showCaughtScreen,
     setOnModeChosen(fn) { onModeChosen = fn; },
   };
 })();

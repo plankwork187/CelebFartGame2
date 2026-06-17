@@ -177,16 +177,32 @@ const APP = (() => {
   function handleLevelEnd(result) {
     GAME.stop();
 
-    if ((result.mode === 'story' || result.mode === 'endless') && !result.success) {
-      // Caught — no complete screen, go straight back into a fresh VN
-      // intro for the SAME level explaining the restart, then replay it.
+    if (result.caught) {
+      // Suspicion maxed out — show the dedicated caught/failure screen
+      // (character's caught facecam + failure line) for ANY suspicion
+      // mode (story, stealth, custom, endless), instead of jumping
+      // straight back into a VN intro or (worse) the success screen.
       PROGRESS.recordLevelResult(result);
       UI.refreshModeSelect();
-      restartCaughtLevel(result);
+      UI.showCaughtScreen(
+        result,
+        selectedCharacter,
+        () => retrySameRun(result),
+        () => goToCharacterSelect(),
+        () => UI.showScreen('screen-mode-select')
+      );
       return;
     }
 
-    if (result.mode === 'story' || result.mode === 'custom' || result.mode === 'endless') {
+    if (result.exitedToMenu) {
+      // Deliberate "Back to Modes" from the pause screen — not a catch,
+      // not a win, just record stats and go straight back to mode select.
+      PROGRESS.recordLevelResult(result);
+      UI.showScreen('screen-mode-select');
+      return;
+    }
+
+    if (result.success && (result.mode === 'story' || result.mode === 'custom' || result.mode === 'endless')) {
       PROGRESS.recordLevelResult(result);
       UI.refreshModeSelect();
       UI.showLevelComplete(result, () => handleCompleteNext(result), () => UI.showScreen('screen-mode-select'));
@@ -200,6 +216,28 @@ const APP = (() => {
     UI.showScreen('screen-mode-select');
   }
 
+  // "Try Again" from the caught screen — retry the same run, the way each
+  // mode's own "Try Again" already works elsewhere:
+  //   story/endless — rebuild + re-intro the SAME level number (so
+  //                    difficulty doesn't change), via restartCaughtLevel.
+  //   custom        — replay the same form values, no VN intro.
+  //   stealth       — no fixed "same level" concept, just start a fresh
+  //                    random stealth run.
+  function retrySameRun(result) {
+    if (result.mode === 'custom') { beginCustomLevel(); return; }
+    if (result.mode === 'stealth') { beginGeneratedLevel(randInt(1, 30), 'stealth'); return; }
+    restartCaughtLevel(result);
+  }
+
+  // "Change Character" from the caught screen — back to character select
+  // for the same mode (re-uses the same selection flow as mode select).
+  function goToCharacterSelect() {
+    UI.populateCharacterSelect((characterId) => {
+      selectedCharacter = CHARACTERS[characterId];
+      afterCharacterChosen();
+    });
+  }
+
   // Rebuilds the SAME level number (so difficulty doesn't change) and
   // shows a fresh VN intro before re-starting it. ui.js's showLevelIntro
   // already includes a DIALOGUE.level_failed_suspicion-style framing via
@@ -211,13 +249,6 @@ const APP = (() => {
   }
 
   function handleCompleteNext(result) {
-    if (!result.success) {
-      // Failed a story/custom/endless level — retry the same level shape.
-      if (result.mode === 'custom') { beginCustomLevel(); return; }
-      beginGeneratedLevel(result.levelNumber || storyLevelNumber, result.mode);
-      return;
-    }
-
     if (result.mode === 'custom') {
       // Custom levels have no natural "next" — go back to the form.
       UI.showScreen('screen-mode-select');

@@ -137,14 +137,20 @@ const CLOUD_SYSTEM = (() => {
   // Smell detection accounts for depth: NPCs farther back need the cloud
   // to be proportionally larger/closer to register (their detectionMult
   // from npc.js's DEPTH_BANDS scales the effective radius for them).
+  // `closeness` (1 = right on top of the cloud center, 0 = at the very
+  // edge of the effective radius) is passed along so game.js can apply
+  // distance falloff to smell detections the same way it already does
+  // for loudness hits.
   function checkSmellDetection(cloud) {
     const smellMaskMult = modEffect('smellDetectionMult');
     NPC_SYSTEM.list().forEach(n => {
       if (cloud.detectedNpcIds.has(n.id)) return;
       const effectiveRadius = (cloud.radius + 14) * n.depthMeta.detectionMult * smellMaskMult;
-      if (Math.abs(n.x - cloud.x) < effectiveRadius) {
+      const dist = Math.abs(n.x - cloud.x);
+      if (dist < effectiveRadius) {
         cloud.detectedNpcIds.add(n.id);
-        if (onNpcDetected) onNpcDetected(n, { source: 'smell', power: cloud.power });
+        const closeness = clamp(1 - dist / effectiveRadius, 0, 1);
+        if (onNpcDetected) onNpcDetected(n, { source: 'smell', power: cloud.power, closeness });
       }
     });
   }
