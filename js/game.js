@@ -57,6 +57,7 @@ const GAME = (() => {
     els = {
       scene: byId('scene'),
       sceneBg: byId('scene-bg'),
+      sceneSeat: byId('scene-seat'),
       sceneTint: byId('scene-tint'),
       sky: byId('sky'), ground: byId('ground'), path: byId('path'),
       hudLevelTag: byId('hud-level-tag'),
@@ -229,6 +230,14 @@ const GAME = (() => {
     if (!location) { els.scene.classList.add('no-bg-art'); return; }
     els.scene.classList.remove('no-bg-art');
     ASSETS.applyBackground(els.sceneBg, location.bg);
+    // Seat/bench layer — loads location.seat if present; hides element when absent
+    if (location.seat) {
+      ASSETS.applyTo(els.sceneSeat, location.seat);
+      els.sceneSeat.style.display = '';
+    } else {
+      els.sceneSeat.removeAttribute('src');
+      els.sceneSeat.style.display = 'none';
+    }
   }
 
   function setupCompanion() {

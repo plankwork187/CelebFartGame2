@@ -363,6 +363,10 @@ html, body {
 #sky { position: absolute; top: 0; left: 0; right: 0; height: 55%; background: #87CEEB; opacity: 0; }
 #ground { position: absolute; bottom: 0; left: 0; right: 0; height: 45%; background: #5a9a3a; opacity: 0; }
 #path { position: absolute; bottom: 55px; left: 0; right: 0; height: 28px; background: #c8b89a; border-top: 2px solid #a89070; border-bottom: 2px solid #a89070; opacity: 0; }
+/* Seat / bench layer — sits above bg/path, below the player (z-index 2).
+   Replace seats/<location>_seat.png with real art; the element hides itself
+   automatically when no seat key is defined on the location. */
+#scene-seat { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 200px; height: auto; z-index: 2; pointer-events: none; object-fit: contain; }
 /* NOTE: sky/ground/path are kept at opacity 0 once a real scene-bg image
    loads — they exist as a flat-color fallback for when no background art
    is present at all (see assets.js / game.js setLocationBackground). */
@@ -428,7 +432,10 @@ html, body {
 }
 
 #power-ring { position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; pointer-events: none; z-index: 6; }
-#power-label { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.4); pointer-events: none; white-space: nowrap; z-index: 7; }
+/* power-label anchors to the same bottom-right corner as #power-ring (which
+   is re-parented into #scene at right:14px bottom:14px by game.js).
+   right:14px keeps it flush with the ring; bottom:78px puts it just above it. */
+#power-label { position: absolute; bottom: 78px; right: 14px; left: auto; transform: none; font-size: 10px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.4); pointer-events: none; white-space: nowrap; z-index: 40; text-align: center; width: 60px; }
 
 #hud { display: grid; grid-template-columns: 1fr 1fr 90px; gap: 8px; margin-top: 10px; }
 .hud-card { background: var(--card-bg-soft); border-radius: var(--radius-sm); padding: 8px 12px; }

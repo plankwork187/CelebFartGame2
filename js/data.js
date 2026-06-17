@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------- */
 const CHARACTERS = {
   sabrina: {
-    id: 'sarbina',
+    id: 'sabrina',
     name: 'Sabrina',
     tagline: 'Pop princess. Sweet smile, chaotic energy.',
     personality: 'playful, confident, always one step ahead of the situation',
@@ -108,6 +108,7 @@ const LOCATIONS = [
     id: 'library',
     name: 'Public Library',
     bg: 'backgrounds/library.png',
+    seat: 'seats/library_seat.png',
     baseNoise: 0.05,
     depthBands: { foreground: 1.0, midground: 0.8, background: 0.5 },
     flavorReasons: [
@@ -121,6 +122,7 @@ const LOCATIONS = [
     id: 'movie_theater',
     name: 'Movie Theater',
     bg: 'backgrounds/movie_theater.png',
+    seat: 'seats/movie_theater_seat.png',
     baseNoise: 0.55,
     depthBands: { foreground: 1.0, midground: 1.0, background: 0.9 },
     flavorReasons: [
@@ -134,6 +136,7 @@ const LOCATIONS = [
     id: 'grocery_store',
     name: 'Grocery Store',
     bg: 'backgrounds/grocery_store.png',
+    seat: 'seats/grocery_store_seat.png',
     baseNoise: 0.35,
     depthBands: { foreground: 1.0, midground: 0.9, background: 0.7 },
     flavorReasons: [
@@ -147,6 +150,7 @@ const LOCATIONS = [
     id: 'restaurant',
     name: 'Restaurant',
     bg: 'backgrounds/restaurant.png',
+    seat: 'seats/restaurant_seat.png',
     baseNoise: 0.4,
     depthBands: { foreground: 1.0, midground: 0.85, background: 0.6 },
     flavorReasons: [
@@ -160,6 +164,7 @@ const LOCATIONS = [
     id: 'classroom',
     name: 'Classroom',
     bg: 'backgrounds/classroom.png',
+    seat: 'seats/classroom_seat.png',
     baseNoise: 0.2,
     depthBands: { foreground: 1.0, midground: 0.85, background: 0.6 },
     flavorReasons: [
@@ -173,6 +178,7 @@ const LOCATIONS = [
     id: 'backstage',
     name: 'Backstage Area',
     bg: 'backgrounds/backstage.png',
+    seat: 'seats/backstage_seat.png',
     baseNoise: 0.3,
     depthBands: { foreground: 1.0, midground: 0.75, background: 0.5 },
     flavorReasons: [
@@ -186,6 +192,7 @@ const LOCATIONS = [
     id: 'interview_room',
     name: 'Job Interview',
     bg: 'backgrounds/interview_room.png',
+    seat: 'seats/interview_room_seat.png',
     baseNoise: 0.05,
     depthBands: { foreground: 1.0, midground: 0.6, background: 0.3 },
     flavorReasons: [
@@ -199,6 +206,7 @@ const LOCATIONS = [
     id: 'waiting_room',
     name: 'Waiting Room',
     bg: 'backgrounds/waiting_room.png',
+    seat: 'seats/waiting_room_seat.png',
     baseNoise: 0.15,
     depthBands: { foreground: 1.0, midground: 0.8, background: 0.55 },
     flavorReasons: [
@@ -212,6 +220,7 @@ const LOCATIONS = [
     id: 'music_video_set',
     name: 'Music Video Set',
     bg: 'backgrounds/music_video_set.png',
+    seat: 'seats/music_video_set_seat.png',
     baseNoise: 0.5,
     depthBands: { foreground: 1.0, midground: 0.9, background: 0.8 },
     flavorReasons: [
@@ -225,6 +234,7 @@ const LOCATIONS = [
     id: 'office',
     name: 'Open-Plan Office',
     bg: 'backgrounds/office.png',
+    seat: 'seats/office_seat.png',
     baseNoise: 0.3,
     depthBands: { foreground: 1.0, midground: 0.85, background: 0.65 },
     flavorReasons: [
@@ -238,6 +248,7 @@ const LOCATIONS = [
     id: 'elevator',
     name: 'Crowded Elevator',
     bg: 'backgrounds/elevator.png',
+    seat: 'seats/elevator_seat.png',
     baseNoise: 0.1,
     depthBands: { foreground: 1.0, midground: 0.5, background: 0.2 },
     flavorReasons: [
@@ -251,6 +262,7 @@ const LOCATIONS = [
     id: 'airplane',
     name: 'Airplane Cabin',
     bg: 'backgrounds/airplane.png',
+    seat: 'seats/airplane_seat.png',
     baseNoise: 0.45,
     depthBands: { foreground: 1.0, midground: 0.8, background: 0.6 },
     flavorReasons: [
@@ -264,6 +276,7 @@ const LOCATIONS = [
     id: 'wedding',
     name: 'Wedding Reception',
     bg: 'backgrounds/wedding.png',
+    seat: 'seats/wedding_seat.png',
     baseNoise: 0.5,
     depthBands: { foreground: 1.0, midground: 0.9, background: 0.75 },
     flavorReasons: [
@@ -277,6 +290,7 @@ const LOCATIONS = [
     id: 'gym',
     name: 'Gym Class',
     bg: 'backgrounds/gym.png',
+    seat: 'seats/gym_seat.png',
     baseNoise: 0.4,
     depthBands: { foreground: 1.0, midground: 0.85, background: 0.65 },
     flavorReasons: [
