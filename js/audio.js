@@ -24,14 +24,14 @@
    ========================================================================= */
 
 const SMALL_FARTS = [
-  'audio/small1.mp3',
-  'audio/small2.mp3',
-  'audio/small3.mp3',
+  'audio/small1.wav',
+  'audio/small2.wav',
+  'audio/small3.wav',
 ];
 
 const LONG_FARTS = [
-  'audio/long1.mp3',
-  'audio/long2.mp3',
+  'audio/long1.wav',
+  'audio/long2.wav',
 ];
 
 const AUDIO_BASE = 'audio/'; // currently unused since paths above already include it; kept for parity with ASSETS.IMAGE_BASE in case paths are simplified later
