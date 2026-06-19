@@ -156,10 +156,11 @@ const GAME = (() => {
     onLevelEnd = cbs.onLevelEnd || null;
   }
 
-  // ── Input wiring: mouse + touch, both buttons ──────────────────────────
+  // ── Input wiring: mouse + touch + keyboard, both directions ───────────
   function wireControls() {
     bindHoldButton(els.btnLeft, -1);
     bindHoldButton(els.btnRight, 1);
+    wireKeyboard();
   }
 
   function bindHoldButton(btn, dir) {
@@ -171,6 +172,58 @@ const GAME = (() => {
     btn.addEventListener('mouseleave', end);
     btn.addEventListener('touchend', end);
     btn.addEventListener('touchcancel', end);
+    return { start, end };
+  }
+
+  // Keyboard: A / ArrowLeft = lean left, D / ArrowRight = lean right.
+  // Mirrors on-screen button behavior exactly (same startHold/stopHold
+  // calls, same 'held' visual state on the corresponding button) so
+  // keyboard and touch/mouse controls are interchangeable. Guards against
+  // the OS's key-repeat (holding a key fires repeated keydown events)
+  // re-triggering startHold every repeat tick — only the first keydown
+  // for a given direction starts the hold; it continues until keyup.
+  function wireKeyboard() {
+    const leftKeys = ['a', 'arrowleft'];
+    const rightKeys = ['d', 'arrowright'];
+    const keyHeld = { left: false, right: false };
+
+    document.addEventListener('keydown', (e) => {
+      if (!running || paused) return;
+      const key = e.key.toLowerCase();
+      if (leftKeys.includes(key)) {
+        if (keyHeld.left) return; // ignore key-repeat
+        keyHeld.left = true;
+        els.btnLeft.classList.add('held');
+        PLAYER.startHold(-1);
+      } else if (rightKeys.includes(key)) {
+        if (keyHeld.right) return; // ignore key-repeat
+        keyHeld.right = true;
+        els.btnRight.classList.add('held');
+        PLAYER.startHold(1);
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      if (leftKeys.includes(key)) {
+        keyHeld.left = false;
+        els.btnLeft.classList.remove('held');
+        PLAYER.stopHold();
+      } else if (rightKeys.includes(key)) {
+        keyHeld.right = false;
+        els.btnRight.classList.remove('held');
+        PLAYER.stopHold();
+      }
+    });
+
+    // Safety net: if the window/tab loses focus while a key is held down,
+    // no keyup event will ever fire (same risk mouseleave guards against
+    // for the on-screen buttons). Release any active keyboard hold so it
+    // can't get stuck on indefinitely.
+    window.addEventListener('blur', () => {
+      if (keyHeld.left) { keyHeld.left = false; els.btnLeft.classList.remove('held'); PLAYER.stopHold(); }
+      if (keyHeld.right) { keyHeld.right = false; els.btnRight.classList.remove('held'); PLAYER.stopHold(); }
+    });
   }
 
   // ── Starting a level ───────────────────────────────────────────────────
@@ -195,6 +248,7 @@ const GAME = (() => {
     CLOUD_SYSTEM.setModifiers(level.modifiers || []);
 
     PLAYER.setCharacter(character);
+    PLAYER.setChaosMode(mode === 'chaos');
     PLAYER.setGasPressureLevel(mode === 'chaos' ? 1 : level.gasPressureLevel);
     PLAYER.reset(mode === 'chaos' ? 100 : 40);
 
@@ -264,10 +318,11 @@ const GAME = (() => {
     // Suspicion bar: hidden entirely in Chaos Mode (no suspicion concept).
     els.suspBar.parentElement.parentElement.style.display = (mode === 'chaos') ? 'none' : '';
 
-    // Gas bar: relabeled / hidden meaning in Chaos (infinite gas — show full, static).
+    // Gas bar: hidden in Chaos Mode (infinite gas, no pressure concept).
     if (mode === 'chaos') {
-      els.gasCard.querySelector('.hud-label').textContent = 'Gas Pressure';
+      els.gasCard.style.display = 'none';
     } else {
+      els.gasCard.style.display = '';
       els.gasCard.querySelector('.hud-label').textContent = 'Gas Pressure';
     }
 
@@ -385,9 +440,34 @@ const GAME = (() => {
 
     COMPANION_SYSTEM.onPlayerRelease({ power, smellLevel, loudLevel });
 
-    hits.forEach(h => reactNpc(h.npc, 'loud', power, h.closeness));
-    if (effectiveLoud > 0.55 && hits.length === 0) {
-      // Loud but nobody in range — still flavor text, no penalty.
+    // SMALL FART (click/tap, power < TAP_THRESHOLD): distinct suspicion pathway.
+    // Small farts are short and sharp — they produce a noticeable noise burst that
+    // nearby NPCs can't easily ignore, even though the release itself is small.
+    // Unlike a prolonged hold fart (whose suspicion flows through reactNpc from
+    // the loudness pulse above), small farts bypass the regular loudness-scaled
+    // path and instead apply a flat suspicion hit directly — making spam-clicking
+    // risky. The hit is applied per nearby NPC (same detection as loud pulse) so
+    // distance still matters, but the base amount is meaningfully higher than what
+    // the normal low-power path would produce.
+    const TAP_THRESHOLD = 0.22; // must match player.js stopHold()
+    const isSmallFart = !isPuff && power < TAP_THRESHOLD;
+    if (isSmallFart && mode !== 'chaos') {
+      // Flat suspicion per detecting NPC — tuned so a single tap near one NPC
+      // is noticeable but survivable; spam-clicking near several NPCs will
+      // escalate the bar quickly. Uses the same hits list from the loudness
+      // pulse above so range/positioning still factors in.
+      const SMALL_FART_SUSPICION_PER_NPC = 7; // per NPC hit — much higher than low-power natural path
+      const SMALL_FART_MIN_SUSPICION = 3;      // always adds at least this even with zero NPC hits
+      let smallFartSuspicionGain = SMALL_FART_MIN_SUSPICION + hits.length * SMALL_FART_SUSPICION_PER_NPC;
+      smallFartSuspicionGain = COMPANION_SYSTEM.modifySuspicionGain(smallFartSuspicionGain, { source: 'loud', power });
+      suspicion = clamp(suspicion + smallFartSuspicionGain, 0, 100);
+      updateSuspicionBar(suspicion);
+      if (suspicion >= 100 && running) triggerCaught();
+    } else {
+      hits.forEach(h => reactNpc(h.npc, 'loud', power, h.closeness));
+      if (effectiveLoud > 0.55 && hits.length === 0) {
+        // Loud but nobody in range — still flavor text, no penalty.
+      }
     }
 
     // Progress ("gas released") contribution per release — now tied
@@ -405,7 +485,9 @@ const GAME = (() => {
     // spam-clicking, which mostly produces taps/puffs rather than a full
     // charge) stay scaled down hard so they can't substitute for an
     // actual sustained charge.
-    const PROGRESS_FLOOR = 0.3;     // minimum credit for a bare tap
+    // SMALL FART FLOOR: click/taps guaranteed at least 1.0 units (100 mL)
+    // so they have real progress value when used at the right moment.
+    const PROGRESS_FLOOR = isSmallFart ? 1.0 : 0.3;
     const PROGRESS_CAP = 14;        // maximum credit a single fully-charged release can award
     const EXP_K = 5.5;              // higher = steeper exponential curve = big farts matter even more
     const p = clamp(power, 0, 1);
@@ -429,6 +511,7 @@ const GAME = (() => {
 
   function handleInvoluntary() {
     setStatus(randFrom(DIALOGUE.involuntary), 1800);
+    AUDIO.playInvoluntaryFart();
     const envNoise = level.environmentNoise !== undefined ? level.environmentNoise : 0.3;
     CLOUD_SYSTEM.spawnSmellCloud(1, 0.8, mode === 'chaos' ? 0.7 : level.smellLevel);
     const { hits } = CLOUD_SYSTEM.emitLoudnessPulse(0.9, mode === 'chaos' ? 0.7 : level.loudLevel, envNoise);
@@ -562,7 +645,10 @@ const GAME = (() => {
     if (!running) return;
     running = false;
     PLAYER.stopHold();
-    showOverlay('Mission Complete!', randLine(DIALOGUE.level_complete, { character: character.name }), true);
+    // Fix 4: skip the in-game "Mission Complete!" overlay pause; go directly
+    // to the level-complete screen (via finish → main.js → ui.showLevelComplete)
+    // which shows stats and a success facecam, matching the automatic failure flow.
+    setTimeout(() => finish(buildResult(true)), 400);
   }
 
   function showOverlay(title, sub, success) {

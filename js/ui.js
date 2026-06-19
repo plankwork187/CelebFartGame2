@@ -56,7 +56,7 @@ const UI = (() => {
 
   // ── Unlocks: mode select reflects PROGRESS state ───────────────────────
   function refreshModeSelect() {
-    const unlocked = progress.get().highestLevelCleared >= 30;
+    const unlocked = progress.get().highestLevelCleared >= 0;
     const customCard = byId('mode-card-custom');
     const endlessCard = byId('mode-card-endless');
     customCard.classList.toggle('mode-card-locked', !unlocked);
@@ -275,11 +275,27 @@ const UI = (() => {
   }
 
   // ── Level complete screen ───────────────────────────────────────────
-  function showLevelComplete(result, onNext, onMenu) {
+  function showLevelComplete(result, character, onNext, onMenu) {
     byId('complete-title').textContent = result.success ? 'Level Complete!' : 'Busted!';
     byId('complete-sub').textContent = result.success
       ? randLine(DIALOGUE.level_complete, { character: result.characterName })
       : randLine(DIALOGUE.level_failed_suspicion, { character: result.characterName });
+
+    // Fix 4: show a success facecam (success1 or success2) on level complete.
+    const facecamWrap = byId('complete-facecam-wrap');
+    const facecamImg = byId('complete-facecam');
+    if (result.success && character && character.faces) {
+      const successKey = Math.random() < 0.5 ? 'success1' : 'success2';
+      const successSrc = character.faces[successKey];
+      if (successSrc) {
+        ASSETS.applyTo(facecamImg, successSrc);
+        if (facecamWrap) facecamWrap.style.display = '';
+      } else {
+        if (facecamWrap) facecamWrap.style.display = 'none';
+      }
+    } else {
+      if (facecamWrap) facecamWrap.style.display = 'none';
+    }
 
     const stats = byId('complete-stats');
     stats.innerHTML = '';

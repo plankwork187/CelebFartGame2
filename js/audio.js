@@ -18,15 +18,20 @@
    ones later; no other code needs to change.
 
    USAGE (wired from player.js):
-     AUDIO.startLongFart()  — call when a hold begins (PLAYER.startHold)
-     AUDIO.stopLongFart()   — call when a hold ends (PLAYER.stopHold)
-     AUDIO.playSmallFart()  — call on a quick tap release (short hold)
+     AUDIO.startLongFart()      — call when a hold begins (PLAYER.startHold)
+     AUDIO.stopLongFart()       — call when a hold ends (PLAYER.stopHold)
+     AUDIO.playSmallFart()      — call on a quick tap release (short hold)
+     AUDIO.playInvoluntaryFart() — call when the gas meter fills completely
+                                   and an involuntary release happens
+                                   (game.js's handleInvoluntary). Reuses the
+                                   short SMALL_FARTS pool since an involuntary
+                                   toot is a quick one-shot, same as a tap.
    ========================================================================= */
 
 const SMALL_FARTS = [
-  'audio/small1.wav',
-  'audio/small2.wav',
-  'audio/small3.wav',
+  'audio/short1.wav',
+  'audio/short2.wav',
+  'audio/short3.wav',
 ];
 
 const LONG_FARTS = [
@@ -79,6 +84,13 @@ const AUDIO = (() => {
     } catch (e) { /* never let audio break gameplay */ }
   }
 
+  // ── Involuntary fart: gas meter filled to 100 and released on its own.
+  // Reuses the same short one-shot pool as playSmallFart — an involuntary
+  // toot is brief, just like a tap release.
+  function playInvoluntaryFart() {
+    playSmallFart();
+  }
+
   // ── Long fart: looping, starts on hold-begin, stops on hold-release ───
   function startLongFart() {
     if (muted || !LONG_FARTS.length) return;
@@ -101,7 +113,7 @@ const AUDIO = (() => {
   }
 
   return {
-    playSmallFart, startLongFart, stopLongFart,
+    playSmallFart, playInvoluntaryFart, startLongFart, stopLongFart,
     setMuted, setVolumes,
   };
 })();

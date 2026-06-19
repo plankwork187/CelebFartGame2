@@ -135,6 +135,10 @@
     <div class="complete-burst"></div>
     <h2 class="screen-heading" id="complete-title">Level Complete!</h2>
     <p class="screen-sub" id="complete-sub"></p>
+    <!-- Fix 4: success facecam shown on level complete (success1/success2 per character) -->
+    <div id="complete-facecam-wrap" class="caught-facecam-wrap" style="display:none">
+      <img id="complete-facecam" class="caught-facecam" alt="success reaction" />
+    </div>
     <div class="complete-stats" id="complete-stats"><!-- populated by ui.js --></div>
     <button class="big-btn big-btn-primary" id="btn-complete-next">Next Level</button>
     <button class="big-btn" id="btn-complete-menu">Back to Modes</button>

@@ -45,6 +45,18 @@ const PLAYER = (() => {
     onInvoluntary = cbs.onInvoluntary || null;
   }
 
+  // Helper: a face value can be a single path string or an array of paths
+  // (Fix 3 doubled facecams). Pick one at random; skip if none available.
+  function resolveFaceSrc(val) {
+    if (!val) return null;
+    if (Array.isArray(val)) {
+      const valid = val.filter(Boolean);
+      if (valid.length === 0) return null;
+      return valid[Math.floor(Math.random() * valid.length)];
+    }
+    return val;
+  }
+
   function getFaceMeta() {
     const F = character.faces;
     return {
@@ -55,13 +67,13 @@ const PLAYER = (() => {
       lean1:     { src: F.lean1, label: 'farting...' },
       lean2:     { src: F.lean2, label: 'farting...' },
       lean_ext:  { src: F.lean_ext, label: 'Mmm finally...' },
-      relieved:  { src: F.relief, label: 'phew!!! 😮\u200d💨' },
+      relieved:  { src: resolveFaceSrc(F.relief), label: 'phew!!! 😮\u200d💨' },
       panicking: { src: F.disc_high, label: 'panicking!!' },
       ohno:      { src: F.disc_high, label: 'oh no...' },
       caught1:   { src: F.caught1, label: 'CAUGHT!!' },
       caught2:   { src: F.caught2, label: 'BUSTED!!' },
       chaos:     { src: F.disc_high, label: 'Ugh, another one...' },
-      sniffed:   { src: F.relief, label: 'hehe... 😏' },
+      sniffed:   { src: resolveFaceSrc(F.relief), label: 'hehe... 😏' },
     };
   }
 
@@ -70,7 +82,9 @@ const PLAYER = (() => {
     currentFaceKey = key;
     const META = getFaceMeta();
     const m = META[key] || META.relaxed;
-    ASSETS.applyTo(els.faceImg, m.src);
+    // Fix 3: only apply if src is non-null (array faces may resolve to null
+    // if no image is available yet — ASSETS skips missing files gracefully).
+    if (m.src) ASSETS.applyTo(els.faceImg, m.src);
     els.faceLabel.textContent = m.label;
   }
 
@@ -86,14 +100,24 @@ const PLAYER = (() => {
     AUDIO.stopLongFart(); // defensive: never carry a looping sound across a level reset
   }
 
+  let chaosMode = false; // set by game.js via setChaosMode()
+
+  function setChaosMode(enabled) {
+    chaosMode = enabled;
+  }
+
+  let longFartStarted = false; // tracks whether the looping sound has begun this hold
+
   function startHold(dir) {
-    if (gas <= 1) return;
+    if (!chaosMode && gas <= 0) return; // no gas left — can't start a fart
     holdDir = dir;
     holdStart = performance.now();
+    longFartStarted = false; // reset for new hold
     els.powerRing.style.opacity = '1';
     currentLeanImg = Math.random() < 0.5 ? 'lean1' : 'lean2';
     setFace(currentLeanImg, true);
-    AUDIO.startLongFart(); // looping "charging up" sound; stopped in stopHold()
+    // Long-fart sound starts in update() once power reaches HOLD_SOUND_THRESHOLD,
+    // so it never overlaps with a tap/click sound (they are mutually exclusive).
   }
 
   function stopHold() {
@@ -109,14 +133,18 @@ const PLAYER = (() => {
 
     AUDIO.stopLongFart(); // always stop the charging loop on release
     // TAP_THRESHOLD: power below this counts as a quick tap/click rather
-    // than a charged hold — releasedPower is derived straight from real
-    // elapsed hold time (see update()'s holdPower = elapsed/3000), so
-    // this is an accurate tap-vs-hold signal, not a guess. Quick taps get
-    // their own one-shot small-fart sound; longer holds already had the
-    // looping long-fart sound playing for their whole duration, so they
-    // don't also need a small-fart sound on release.
-    const TAP_THRESHOLD = 0.15;
-    if (releasedPower < TAP_THRESHOLD) AUDIO.playSmallFart();
+    // than a charged hold. Raised to 0.22 (matching the point at which
+    // the long-fart sound begins playing) so only one sound plays — a
+    // short press gets the click sound, a press that reaches 0.22 power
+    // gets only the looping hold sound, never both.
+    const TAP_THRESHOLD = 0.22;
+    if (releasedPower < TAP_THRESHOLD) {
+      AUDIO.playSmallFart();
+      // Fix 5: short click releases a noticeable tuft of gas from the bar.
+      if (!chaosMode) {
+        gas = Math.max(0, gas - 18);
+      }
+    }
 
     if (onRelease) onRelease(releasedPower); // holdDir still set here — game.js reads it via getHoldDir()
     holdDir = 0; holdPower = 0;
@@ -130,13 +158,21 @@ const PLAYER = (() => {
 
   function update(dt) {
     if (holdDir !== 0) {
-      if (gas <= 0) { stopHold(); return; }
       const elapsed = performance.now() - holdStart;
       holdPower = Math.min(1, elapsed / 3000);
       const arcLen = holdPower * CIRC;
       els.powerArc.setAttribute('stroke-dasharray', arcLen.toFixed(1) + ' ' + (CIRC - arcLen).toFixed(1));
       els.powerArc.setAttribute('stroke', holdPower > 0.7 ? '#cc2200' : holdPower > 0.4 ? '#e8a020' : '#E75480');
       els.powerLabel.textContent = holdPower > 0.7 ? 'MAX' : holdPower > 0.4 ? 'strong' : 'light';
+
+      // Fix 5: start long-fart loop only once power crosses the click→hold
+      // threshold (0.22), exactly matching the TAP_THRESHOLD in stopHold().
+      // This guarantees the click sound and hold sound are mutually exclusive.
+      const HOLD_SOUND_THRESHOLD = 0.22;
+      if (!longFartStarted && holdPower >= HOLD_SOUND_THRESHOLD) {
+        longFartStarted = true;
+        AUDIO.startLongFart();
+      }
 
       if (holdPower > 0.75) {
         els.playerWrap.className = holdDir === -1 ? 'lean-extreme-left' : 'lean-extreme-right';
@@ -149,6 +185,12 @@ const PLAYER = (() => {
       const drainRate = 0.004 + holdPower * holdPower * 0.014;
       gas = Math.max(0, gas - dt * drainRate);
 
+      // Fix 2: if gas runs out mid-hold in non-chaos modes, force-release.
+      if (!chaosMode && gas <= 0) {
+        stopHold();
+        return;
+      }
+
       cloudTimer += dt;
       const interval = Math.max(140, 420 - holdPower * 280);
       if (cloudTimer >= interval) {
@@ -156,12 +198,25 @@ const PLAYER = (() => {
         if (onRelease) onRelease(holdPower, true); // true = "mid-hold puff", not a full release
       }
     } else {
-      const proximity = Math.max(0, (gas - 85) / 15);
-      const rate = gasFillRate * (1 - proximity * 0.82);
-      gas = Math.min(100, gas + dt * rate);
+      // Two-stage passive refill curve: faster through the first half of
+      // the meter (0-50) so it's easy to get enough gas to release a
+      // fart, then progressively slower through the second half (50-100)
+      // so it's harder to accidentally fill all the way up and trigger an
+      // involuntary release. FIRST_HALF_MULT/SECOND_HALF_MIN_MULT tune how
+      // pronounced each stage is relative to the base gasFillRate.
+      const FIRST_HALF_MULT = 1.35;     // speed multiplier while gas < 50
+      const SECOND_HALF_MIN_MULT = 0.35; // multiplier gas approaches as it nears 100
+      let rateMult;
+      if (gas < 50) {
+        rateMult = FIRST_HALF_MULT;
+      } else {
+        const t = clamp((gas - 50) / 50, 0, 1); // 0 at gas=50, 1 at gas=100
+        rateMult = lerp(1, SECOND_HALF_MIN_MULT, t);
+      }
+      gas = Math.min(100, gas + dt * gasFillRate * rateMult);
     }
 
-    if (gas >= 100) {
+    if (!chaosMode && gas >= 100) {
       gas = Math.max(0, gas - 35);
       if (onInvoluntary) onInvoluntary();
     }
@@ -178,7 +233,7 @@ const PLAYER = (() => {
   }
 
   return {
-    init, setCharacter, setGasPressureLevel, setCallbacks, reset,
+    init, setCharacter, setGasPressureLevel, setChaosMode, setCallbacks, reset,
     startHold, stopHold, isHolding, getGas, getHoldPower, getHoldDir, update,
     setFace, updateIdleFace,
   };

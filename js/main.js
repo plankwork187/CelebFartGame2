@@ -205,7 +205,7 @@ const APP = (() => {
     if (result.success && (result.mode === 'story' || result.mode === 'custom' || result.mode === 'endless')) {
       PROGRESS.recordLevelResult(result);
       UI.refreshModeSelect();
-      UI.showLevelComplete(result, () => handleCompleteNext(result), () => UI.showScreen('screen-mode-select'));
+      UI.showLevelComplete(result, selectedCharacter, () => handleCompleteNext(result), () => UI.showScreen('screen-mode-select'));
       return;
     }
 
