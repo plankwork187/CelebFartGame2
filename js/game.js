@@ -302,7 +302,7 @@ const GAME = (() => {
       return;
     }
     els.companionWrap.style.display = 'block';
-    ASSETS.applyTo(els.companionImg, companion.portrait);
+    ASSETS.applyTo(els.companionImg, companion.body || companion.portrait);
     els.companionName.textContent = companion.name;
     COMPANION_SYSTEM.init(companion, ctx);
   }
@@ -393,7 +393,7 @@ const GAME = (() => {
       // back under 100 in the same tick and the catch would never trigger.
       if (suspicion < 100) {
         const decayMult = CLOUD_SYSTEM.modEffect('suspicionDecayMult');
-        suspicion = clamp(suspicion - dt * 0.0035 * decayMult, 0, 100);
+        suspicion = clamp(suspicion - dt * 0.008 * decayMult, 0, 100);
       }
       updateSuspicionBar(suspicion);
 

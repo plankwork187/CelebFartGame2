@@ -214,7 +214,7 @@ const UI = (() => {
 
     // Portraits
     const playerPortrait = byId('vn-portrait-player');
-    ASSETS.applyTo(playerPortrait, character.profile);
+    ASSETS.applyTo(playerPortrait, character.vn || character.profile);
     const companionPortrait = byId('vn-portrait-companion');
     if (level.companion.portrait) {
       companionPortrait.hidden = false;
