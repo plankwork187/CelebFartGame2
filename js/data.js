@@ -142,9 +142,9 @@ const CHARACTERS = {
     },
   },
 
-  taylor: {
-    id: 'taylor',
-    name: 'Taylor',
+  char6: {
+    id: 'char6',
+    name: 'Character 6',
     tagline: 'Perfectionist. Extremely bad timing.',
     personality: 'meticulous, high-strung, catastrophically unlucky in the most elegant way',
     profile: 'characters/char6_profile.png',
@@ -260,22 +260,8 @@ const LOCATIONS = [
     flavorReasons: [
       'minutes from walking on stage',
       'waiting for a costume change',
-      'rehearsing lines one last time',
+      'rehearsing moves one last time',
       'hiding from the director after a mistake',
-    ],
-  },
-  {
-    id: 'interview_room',
-    name: 'Job Interview',
-    bg: 'backgrounds/interview_room.png',
-    seat: 'seats/interview_room_seat.png',
-    baseNoise: 0.05,
-    depthBands: { foreground: 1.0, midground: 0.6, background: 0.3 },
-    flavorReasons: [
-      'interviewing for a dream job',
-      'a panel interview with three people staring at you',
-      'a follow-up interview after a strong first round',
-      'interviewing for a job you are wildly unqualified for',
     ],
   },
   {
@@ -315,8 +301,8 @@ const LOCATIONS = [
     depthBands: { foreground: 1.0, midground: 0.85, background: 0.65 },
     flavorReasons: [
       'a quarterly review meeting',
-      'covering someone else\'s desk for the day',
-      'the first week at a new job',
+      'covering your close friend\'s desk for a minute while they step away',
+      'the first week at your new agency office',
       'an all-hands meeting that is running long',
     ],
   },
@@ -328,10 +314,10 @@ const LOCATIONS = [
     baseNoise: 0.1,
     depthBands: { foreground: 1.0, midground: 0.5, background: 0.2 },
     flavorReasons: [
-      'stuck between floors with the building\'s slowest elevator',
-      'riding up forty-two floors with strangers',
-      'sharing the ride with the entire executive team',
-      'just trying to make it to the lobby',
+      'waiting for bell man to retrieve your luggage',
+      'expecting a friend to meet here soon before a day on the town',
+      'arrvived early before a long drive with the entire executive team',
+      'just waiting for the one working elevator to finally arrive',
     ],
   },
   {
